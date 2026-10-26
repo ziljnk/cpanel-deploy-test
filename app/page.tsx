@@ -30,7 +30,7 @@ export default async function Home() {
     >
       <section className={styles.panel}>
         <p className={styles.kicker}>cPanel deploy rehearsal</p>
-        <h1 className={styles.heading}>Deploy OK</h1>
+        <h1 className={styles.heading}>Deploy OK, pushed by Linh</h1>
         <p className={styles.sha}>{shortCommit}</p>
         <p className={styles.full}>{commit}</p>
         <dl className={styles.meta}>
