@@ -9,7 +9,9 @@ set -Eeuo pipefail
 SHA="${1:?usage: remote-deploy.sh <commit sha> [true|false]}"
 BREAK="${2:-false}"
 APP_ROOT="$HOME/deploy-test"
-NODE_BIN="$HOME/nodevenv/deploy-test/22/bin"
+# Real Node 22 binaries. The nodevenv npm wrapper (~/nodevenv/.../bin/npm)
+# is a CloudLinux production install and omits devDependencies.
+NODE_BIN="/opt/alt/alt-nodejs22/root/usr/bin"
 REPO_URL="https://github.com/ziljnk/cpanel-deploy-test.git"
 HOST="deploy-test.linhouse.com.vn"
 SHORT="${SHA:0:7}"
@@ -46,7 +48,12 @@ fi
 
 cd "$REL"
 log "npm ci"
-npm ci --no-audit --no-fund
+unset NODE_ENV npm_config_production
+npm ci --include=dev --no-audit --no-fund
+if [ ! -e node_modules/typescript ] || [ ! -e node_modules/.bin/next ]; then
+  log "npm ci did not install the build toolchain (missing node_modules/typescript or node_modules/.bin/next). Refusing to build."
+  exit 1
+fi
 log "npm run build"
 NEXT_PUBLIC_COMMIT="$SHA" GIT_COMMIT="$SHA" APP_MODE=test npm run build
 
