@@ -13,9 +13,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   deploymentId: commitId,
   serverExternalPackages: ["mysql2", "drizzle-orm", "sharp"],
+  env: {
+    BUILD_TIME: new Date().toISOString(),
+  },
   experimental: {
     agentFeedback: true,
-    cpus: 1,
   },
   cacheComponents: true,
   partialPrefetching: true,
