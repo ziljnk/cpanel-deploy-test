@@ -1,0 +1,43 @@
+name: Deploy to cPanel (mock)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      break_release:
+        description: "Deploy a deliberately broken release to test the rollback"
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-cpanel-mock
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Build and release on the server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          BREAK_RELEASE: ${{ inputs.break_release || false }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 2210 \
+            -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            bash -s -- "$GITHUB_SHA" "$BREAK_RELEASE" < deploy/remote-deploy.sh
