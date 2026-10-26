@@ -1,9 +1,18 @@
+import { cacheLife } from "next/cache";
 import Image from "next/image";
+import { getHomeCopy } from "@/lib/db";
 
-export default function Home() {
+export default async function Home() {
+  const siteCopyText = await loadHomeCopy();
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <p
+          id="site-copy"
+          className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400"
+        >
+          {siteCopyText}
+        </p>
         <Image
           className="dark:invert h-5 w-[100px]"
           src="/next.svg"
@@ -66,4 +75,12 @@ export default function Home() {
       </main>
     </div>
   );
+}
+
+async function loadHomeCopy() {
+  "use cache";
+  cacheLife({ revalidate: 3600, expire: 86400 });
+  if (!process.env.DATABASE_URL) return "Database not configured.";
+  const value = await getHomeCopy();
+  return value || "No home row in site_copy.";
 }
