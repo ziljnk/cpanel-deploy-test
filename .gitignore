@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Keep the sample env file tracked. `.env*` above ignores it otherwise.
+!.env.example
