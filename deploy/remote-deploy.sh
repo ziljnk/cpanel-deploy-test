@@ -14,6 +14,7 @@ APP_ROOT="$HOME/deploy-test"
 NODE_BIN="/opt/alt/alt-nodejs22/root/usr/bin"
 REPO_URL="https://github.com/ziljnk/cpanel-deploy-test.git"
 HOST="deploy-test.linhouse.com.vn"
+SERVER_IP="${SERVER_IP:-103.221.220.80}"
 SHORT="${SHA:0:7}"
 
 export PATH="$NODE_BIN:$PATH"
@@ -94,7 +95,7 @@ check_health() {
   for i in $(seq 1 12); do
     for scheme in https http; do
       local port=443; [ "$scheme" = http ] && port=80
-      body="$(curl -sk --max-time 30 --resolve "$HOST:$port:127.0.0.1" -w '\n%{http_code}' "$scheme://$HOST/api/health?t=$(date +%s)" || true)"
+      body="$(curl -sk --max-time 30 --resolve "$HOST:$port:$SERVER_IP" -w '\n%{http_code}' "$scheme://$HOST/api/health?t=$(date +%s)" || true)"
       code="$(printf '%s' "$body" | tail -n1)"
       if [ "$code" = "200" ] && printf '%s' "$body" | grep -q "$want"; then
         log "Health OK ($scheme): $(printf '%s' "$body" | head -n1)"
